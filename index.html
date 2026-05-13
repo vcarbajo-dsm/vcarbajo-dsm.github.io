@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resident Evil: Armageddon - Arquivo Classificado</title>
+  <style>
+    /* ========================================
+           RESETAR ESTILOS PADRÃO
+           ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ========================================
+           CORES E VARIÁVEIS (Fácil customização)
+           ======================================== */
+    :root {
+      --cor-fundo-principal: #0a0e1a;
+      --cor-fundo-secundaria: #1a2437;
+      --cor-fundo-painel: #172138;
+      --cor-borda: #2a5f7f;
+      --cor-borda-escura: #0f1820;
+      --cor-texto-principal: #b8d4e8;
+      --cor-texto-secundario: #7a9bb0;
+      --cor-destaque: #00d4ff;
+      --cor-perigo: #ff4444;
+      --cor-hover: #1e3a52;
+      --cor-sombra: rgba(0, 0, 0, 0.6);
+    }
+
+    /* ========================================
+           BODY E CONTAINERS PRINCIPAIS
+           ======================================== */
+    body {
+      font-family: "Courier New", monospace;
+      background: linear-gradient(135deg,
+          var(--cor-fundo-principal) 0%,
+          var(--cor-fundo-secundaria) 100%);
+      color: var(--cor-texto-principal);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Efeito de scan de CRT (opcional) */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        linear-gradient(0deg,
+          transparent 24%,
+          rgba(0, 212, 255, 0.05) 25%,
+          rgba(0, 212, 255, 0.05) 26%,
+          transparent 27%,
+          transparent 74%,
+          rgba(0, 212, 255, 0.05) 75%,
+          rgba(0, 212, 255, 0.05) 76%,
+          transparent 77%,
+          transparent),
+        linear-gradient(90deg,
+          transparent 24%,
+          rgba(0, 212, 255, 0.03) 25%,
+          rgba(0, 212, 255, 0.03) 26%,
+          transparent 27%,
+          transparent 74%,
+          rgba(0, 212, 255, 0.03) 75%,
+          rgba(0, 212, 255, 0.03) 76%,
+          transparent 77%,
+          transparent);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+      gap: 0;
+      position: relative;
+      z-index: 0;
+    }
+
+    /* ========================================
+           BARRA LATERAL (SIDEBAR)
+           ======================================== */
+    .sidebar {
+      width: 240px;
+      background: var(--cor-fundo-painel);
+      border-right: 3px solid var(--cor-borda);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      box-shadow: 2px 0 15px var(--cor-sombra);
+      position: relative;
+      z-index: 2;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo-titulo {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--cor-destaque);
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px var(--cor-destaque);
+      margin-bottom: 8px;
+    }
+
+    .logo-subtitulo {
+      font-size: 11px;
+      color: var(--cor-texto-secundario);
+      letter-spacing: 1px;
+    }
+
+    /* Separador visual */
+    .divisor {
+      height: 1px;
+      background: linear-gradient(90deg,
+          transparent,
+          var(--cor-borda),
+          transparent);
+      margin: 10px 0;
+    }
+
+    .menu-secao {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .menu-titulo {
+      font-size: 12px;
+      color: var(--cor-destaque);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      border-left: 2px solid var(--cor-destaque);
+      padding-left: 8px;
+      opacity: 0.8;
+    }
+
+    .side-btn {
+      padding: 12px 15px;
+      border: 1px solid var(--cor-borda);
+      background: var(--cor-fundo-secundaria);
+      color: var(--cor-texto-principal);
+      cursor: pointer;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+      transition: 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .side-btn:before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--cor-hover);
+      z-index: -1;
+      transition: left 0.3s ease;
+    }
+
+    .side-btn:hover,
+    .side-btn.ativo-arquivo {
+      color: var(--cor-destaque);
+      border-color: var(--cor-destaque);
+      text-shadow: 0 0 8px var(--cor-destaque);
+    }
+
+    .side-btn:hover:before,
+    .side-btn.ativo-arquivo:before {
+      left: 0;
+    }
+
+    /* ========================================
+           CONTEÚDO PRINCIPAL
+           ======================================== */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--cor-fundo-principal);
+      overflow-y: auto;
+      position: relative;
+      z-index: 0;
+    }
+
+    /* BARRA DE PERSONAGENS */
+    .topbar {
+      display: flex;
+      gap: 10px;
+      padding: 20px;
+      background: var(--cor-fundo-painel);
+      border-bottom: 3px solid var(--cor-borda);
+      overflow-x: auto;
+      flex-wrap: wrap;
+      box-shadow: 0 3px 10px var(--cor-sombra);
+    }
+
+    .char-btn {
+      padding: 10px 18px;
+      background: var(--cor-fundo-secundaria);
+      border: 1px solid var(--cor-borda);
+      color: var(--cor-texto-principal);
+      cursor: pointer;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+      transition: 0.3s ease;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .char-btn.ativo {
+      background: var(--cor-destaque);
+      color: #0a0e1a;
+      border-color: var(--cor-destaque);
+      font-weight: bold;
+      box-shadow: 0 0 15px var(--cor-destaque);
+    }
+
+    .char-btn:hover:not(.ativo) {
+      border-color: var(--cor-destaque);
+      color: var(--cor-destaque);
+    }
+
+    /* CABEÇALHO COM TÍTULO */
+    .header {
+      padding: 30px;
+      background: linear-gradient(135deg,
+          var(--cor-fundo-painel) 0%,
+          var(--cor-fundo-secundaria) 100%);
+      border-bottom: 2px solid var(--cor-borda);
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      color: var(--cor-destaque);
+      letter-spacing: 3px;
+      text-shadow: 0 0 20px var(--cor-destaque);
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: var(--cor-texto-secundario);
+      letter-spacing: 1px;
+    }
+
+    /* FICHA DO PERSONAGEM */
+    .character-sheet {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 1fr;
+      gap: 25px;
+      padding: 30px;
+      flex: 1;
+    }
+
+    /* TELA DE ARQUIVO */
+    .arquivo-view {
+      padding: 30px;
+      display: none;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .arquivo-view.ativo {
+      display: flex;
+    }
+
+    /* PAINÉIS DE INFORMAÇÃO */
+    .panel {
+      background: var(--cor-fundo-painel);
+      border: 2px solid var(--cor-borda);
+      padding: 25px;
+      box-shadow: 0 5px 20px var(--cor-sombra);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg,
+          transparent,
+          var(--cor-destaque),
+          transparent);
+    }
+
+    .panel h2 {
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--cor-borda);
+      padding-bottom: 12px;
+      color: var(--cor-destaque);
+      font-size: 16px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .panel h3 {
+      color: var(--cor-destaque);
+      margin-bottom: 15px;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    .panel p {
+      text-align: justify;
+      line-height: 1.8;
+      font-size: 14px;
+      color: var(--cor-texto-principal);
+    }
+
+    /* IMAGEM DO PERSONAGEM/ARQUIVO */
+    .character-image,
+    .arquivo-image {
+      width: 100%;
+      height: 450px;
+      object-fit: cover;
+      border: 3px solid var(--cor-borda);
+      box-shadow: 0 5px 20px var(--cor-sombra);
+      filter: brightness(0.95) contrast(1.1) saturate(0.9);
+      margin-bottom: 15px;
+    }
+
+    /* LABELS E INFORMAÇÕES ORGANIZADAS */
+    .info-label {
+      color: var(--cor-destaque);
+      font-weight: bold;
+      font-size: 13px;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .info-content {
+      color: var(--cor-texto-principal);
+      font-size: 14px;
+      margin-bottom: 15px;
+      padding-left: 15px;
+      border-left: 2px solid var(--cor-borda);
+    }
+
+    /* LISTA COM BULLET POINTS */
+    .lista-observacoes {
+      list-style: none;
+    }
+
+    .lista-observacoes li {
+      margin-bottom: 12px;
+      padding-left: 20px;
+      position: relative;
+      font-size: 14px;
+    }
+
+    .lista-observacoes li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--cor-destaque);
+    }
+
+    /* STATUS BADGE */
+    .status-badge {
+      display: inline-block;
+      padding: 8px 15px;
+      background: var(--cor-perigo);
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-top: 15px;
+      border: 1px solid var(--cor-perigo);
+      box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+      text-transform: uppercase;
+    }
+
+    /* ========================================
+           SEÇÃO DE ENREDO/HISTÓRIA
+           ======================================== */
+    .story-section {
+      padding: 30px;
+      background: var(--cor-fundo-painel);
+      border: 2px solid var(--cor-borda);
+      margin: 0 30px 30px 30px;
+      box-shadow: 0 5px 20px var(--cor-sombra);
+    }
+
+    .story-section h3 {
+      color: var(--cor-destaque);
+      margin-bottom: 15px;
+      font-size: 16px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ========================================
+           RESPONSIVO
+           ======================================== */
+    @media (max-width: 1200px) {
+      .character-sheet {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        width: 200px;
+        padding: 20px 15px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        padding: 20px;
+        gap: 15px;
+      }
+
+      .header h1 {
+        font-size: 32px;
+      }
+
+      .character-sheet {
+        padding: 15px;
+        gap: 15px;
+      }
+
+      .topbar {
+        padding: 15px;
+      }
+
+      .panel {
+        padding: 15px;
+      }
+    }
+
+    /* ========================================
+           SCROLL BAR ESTILIZADO
+           ======================================== */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--cor-fundo-painel);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--cor-borda);
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--cor-destaque);
+      box-shadow: 0 0 10px var(--cor-destaque);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- ============================================
+         SIDEBAR - MENU LATERAL
+         ============================================ -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-titulo">▌ARQUIVO▌</div>
+        <div class="logo-subtitulo">CLASSIFICADO</div>
+      </div>
+
+      <div class="divisor"></div>
+
+      <!-- SEÇÃO 1: PERSONAGENS -->
+      <div class="menu-secao">
+        <div class="menu-titulo">█ Personagens</div>
+        <button class="char-btn ativo" onclick="carregarPersonagem(0)">
+          Jonathan E. Bravo
+        </button>
+      </div>
+
+      <!-- SEÇÃO 2: MUNDO -->
+      <div class="menu-secao">
+        <div class="menu-titulo">█ Arquivos</div>
+        <button class="side-btn" onclick="carregarArquivo('araguaia')">
+          Araguaia do Norte - MT
+        </button>
+        <button class="side-btn" onclick="carregarArquivo('nova-albertina')">
+          Nova Albertina - MT
+        </button>
+        <button class="side-btn" onclick="carregarArquivo('remanso')">
+          Remanso do Tucano - MT
+        </button>
+      </div>
+
+      <div class="divisor"></div>
+
+      <!-- RODAPÉ -->
+      <div style="
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--cor-borda);
+            font-size: 11px;
+            color: var(--cor-texto-secundario);
+            text-align: center;
+          ">
+        Resident Evil: Armageddon<br />
+        © 2026 - Social Spirit Fanfiction
+      </div>
+    </aside>
+
+    <!-- ============================================
+         CONTEÚDO PRINCIPAL
+         ============================================ -->
+    <main class="content">
+      <!-- CABEÇALHO -->
+      <div class="header">
+        <h1>RESIDENT EVIL: ARMAGEDDON</h1>
+        <p>█ SISTEMA DE ARQUIVO CLASSIFICADO █</p>
+      </div>
+
+      <!-- FICHA DO PERSONAGEM -->
+      <section class="character-sheet" id="fichaPersonagem">
+        <!-- Será preenchido por JavaScript -->
+      </section>
+
+      <!-- VISUALIZAÇÃO DE ARQUIVO -->
+      <section class="arquivo-view" id="viewArquivo">
+        <!-- Será preenchido por JavaScript -->
+      </section>
+    </main>
+  </div>
+
+  <!-- ============================================
+     JAVASCRIPT - GERENCIADOR DE PERSONAGENS E ARQUIVOS
+     ============================================ -->
+  <script>
+    // ┌─────────────────────────────────────────────────────────────┐
+    // │ BANCO DE DADOS DOS PERSONAGENS                              │
+    // │ ADICIONE AQUI NOVOS PERSONAGENS CONFORME NECESSÁRIO         │
+    // └─────────────────────────────────────────────────────────────┘
+    const personagens = [{
+      // PERSONAGEM 1 - EDITAR CONFORME NECESSÁRIO
+      nome: "Jonathan Elias Bravo",
+      imagem: "https://assets3.thrillist.com/v1/image/2664834/1584x2046/scale;webp=auto;jpeg_quality=60.jpg",
+      idade: "34 anos",
+      ocupacao: "Policial Civil",
+      altura: "1,78m",
+      genero: "Masculino",
+      orientacao_sexual: "Bissexual",
+      personalidade: `Um policial decadente de natureza cética e áspera, que usa o humor ácido como única trincheira contra um desespero que conhece pelo nome; por baixo da casca de sarcasmo e da postura relaxada de quem já desistiu de tentar, há uma lealdade feroz que ele mesmo trata como fraqueza. Lealdade a poucos, canina e suja, dessas que não pedem perdão nem aplauso. Sua autoestima é tão subterrânea que ele aprendeu a confundir abandono com liberdade, e afeto com armadilha. Não se considera religioso, mas odeia igrejas com um fervor quase devocional, menos por teologia e mais porque aprendeu cedo que a religião é o ópio do povo. Tem o hábito de provocar os outros até testar se vão ficar, ri da própria desgraça com uma risada seca e, no fundo, carrega o medo silencioso de que alguém o leve a sério tempo o bastante para descobrir que ele já se quebrou todo por dentro, e só se mantém em pé por manha, vício e um resto de orgulho maluco.`,
+      historia: `Natural de Araguaia do Norte – MT. Criado em uma família disfuncional, aprendeu cedo que afeto e confiança são mercadorias de troca instável. Aos vinte e quatro anos, casou-se com Lara dos Santos Almeida. O casamento foi menos um gesto de amor do que uma rota de fuga: sair daquela casa que o adoecia em vez de consertá-la. A união durou oito anos, não produziu filhos e terminou em divórcio há dois anos. Lara ficou no passado, e ele, em certa medida, também.
+          
+          Transferido de volta para Araguaia há um ano e meio, a mesma cidade que um dia jurou nunca mais pisar. O retorno não foi uma escolha, mas uma determinação funcional. Desde então, a carreira não decolou. Acumula fracassos afetivos como quem acumula dias iguais: sem surpresa, sem variação, apenas a repetição cansada do mesmo padrão. Sua autoestima é baixa, crônica, quase um dado de identidade.
+          
+          O futuro, para ele, é apenas uma ideia vaga, sem endereço fixo.
+          
+          Hoje vive entre o humor ácido e o silêncio. Ri da própria desgraça e da alheia, não por crueldade, mas por falta de vocabulário para lidar com o desespero de outro jeito. Não frequenta igrejas, não se declara religioso, mas carrega consigo uma fé negativa: a certeza de que nada vai melhorar, e que rir é a única resposta que não dói tanto.`,
+      observacoes: [
+        "Ri alto em situações de luto ou tragédia, o que já lhe rendeu olhares hostis em velórios",
+        "Nunca fala sobre o período entre o divórcio e a transferência de volta a Araguaia",
+        "Tem uma cicatriz no antebraço esquerdo que atribui a 'um acidente doméstico', mas a história muda a cada vez",
+        "Evita qualquer contato físico prolongado, especialmente abraços",
+        "Tem o hábito de responder perguntas sinceras com outra pergunta",
+        "Evita atravessar na frente de igrejas, preferindo dar a volta quarteirão mesmo sob chuva",
+      ],
+    },];
+    // ┌─────────────────────────────────────────────────────────────┐
+    // │ BANCO DE DADOS DOS ARQUIVOS/LOCALIZAÇÕES                    │
+    // │ ADICIONE AQUI NOVOS ARQUIVOS CONFORME NECESSÁRIO            │
+    // └─────────────────────────────────────────────────────────────┘
+    const arquivos = [{
+      id: "araguaia",
+      nome: "Araguaia do Norte - MT",
+      imagem: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Inhumas_-_Goias_-_Brasil_02.jpg?w=1200&h=600&fit=crop",
+      descricao: `<p>
+          O município de Araguaia do Norte localiza-se na região nordeste do estado de Mato Grosso, próximo à divisa natural formada pelo Rio Araguaia e às áreas de expansão agropecuária do chamado Corredor Norte de Escoamento. Possui população estimada em aproximadamente 50 mil habitantes, distribuídos entre a área urbana central, bairros periféricos de crescimento irregular e comunidades rurais ligadas à produção agrícola e pecuária extensiva.
+          </p></br>
+          <p>
+          A economia municipal depende majoritariamente do agronegócio, especialmente da criação bovina, cultivo de soja, milho e transporte de cargas. A cidade funciona como ponto logístico intermediário entre fazendas da região e centros maiores de distribuição, o que resulta em intenso fluxo de caminhões e veículos utilitários pelas principais vias urbanas. O setor de serviços apresenta crescimento moderado, sustentado por supermercados, oficinas mecânicas, lojas agropecuárias e pequenas redes comerciais locais.
+          </p></br>
+          <p>
+          O núcleo urbano concentra-se ao redor da Avenida Central, principal eixo viário do município, onde se encontram repartições públicas, agências bancárias, farmácias, restaurantes populares e o único shopping center da cidade, inaugurado em 2014. Apesar da expectativa inicial de modernização econômica, o empreendimento apresentou desempenho abaixo do esperado devido à baixa circulação noturna e à concorrência do comércio tradicional de rua.
+          </p></br>
+          <p>
+          A infraestrutura urbana permanece considerada limitada para o porte populacional atual. O sistema hospitalar municipal opera frequentemente acima da capacidade projetada, sobretudo no Hospital Regional de Araguaia do Norte, referência para municípios vizinhos menores. Há registros recorrentes de falta de profissionais especializados, superlotação do pronto atendimento e interrupções ocasionais no abastecimento de medicamentos básicos.
+          </p></br>
+          <p>
+          A segurança pública é atendida por uma delegacia regional instalada em estrutura antiga, originalmente construída ainda durante o período em que Araguaia do Norte era classificada como distrito administrativo rural. O prédio apresenta sinais avançados de deterioração estrutural, incluindo infiltrações, falhas elétricas e celas desativadas por problemas de segurança. O efetivo policial disponível é considerado insuficiente para a atual demanda urbana e rural.
+          </p></br>
+          <p>
+          Os bairros periféricos cresceram rapidamente ao longo da última década, impulsionados pela migração de trabalhadores vindos de outras regiões do país. Parte dessas áreas apresenta pavimentação incompleta, iluminação pública precária e sistemas de saneamento improvisados. Durante o período chuvoso, diversas vias tornam-se praticamente intransitáveis devido ao acúmulo de lama vermelha característica do solo local.
+          </p></br>
+          <p>
+          Culturalmente, o município mantém forte influência sertaneja e religiosa. Festas agropecuárias, cavalgadas e eventos evangélicos reúnem grande parte da população ao longo do ano. A vida noturna é reduzida e concentrada em poucos bares, postos de combustível e conveniências que permanecem abertas após as 22h.
+          </p></br>
+          <p>
+          Durante a noite, a cidade apresenta significativa redução no fluxo de pessoas. Após o fechamento do comércio, grande parte das ruas permanece praticamente vazia, iluminada apenas por postes de vapor metálico antigos e pela circulação esporádica de veículos de carga. Moradores locais frequentemente descrevem o ambiente noturno como “silencioso demais”, especialmente nas áreas próximas ao rio e aos bairros industriais.
+          </p>`,
+      conteudo: `
+            <h3>Registro Histórico - Araguaia do Norte</h3>
+            <p>
+            Os primeiros registros de ocupação da área correspondente a Araguaia do Norte remontam ao início da década de 1970, durante os projetos federais de expansão territorial e colonização agrícola do Centro-Oeste brasileiro. À época, a região era composta majoritariamente por mata nativa, áreas alagadiças e pequenas rotas de garimpo informal utilizadas por grupos itinerantes.
+            </p></br>
+
+            <p>
+            O povoado surgiu inicialmente como um ponto de parada improvisado para caminhoneiros e trabalhadores rurais que atravessavam estradas de terra em direção às novas fazendas abertas no norte do estado. Barracões de madeira, oficinas mecânicas rudimentares e pequenos comércios abasteciam viajantes que permaneciam dias isolados devido às condições precárias das rotas durante o período de chuvas.
+            </p></br>
+
+            <p>
+            Em 1978, o governo estadual reconheceu oficialmente o núcleo urbano como distrito administrativo. O nome “Araguaia do Norte” foi adotado em referência ao rio que margeia a região e ao posicionamento geográfico estratégico dentro das novas frentes de expansão econômica do estado.
+            </p></br>
+
+            <p>
+            Durante os anos oitenta, a cidade cresceu de forma acelerada e desorganizada. A chegada de migrantes vindos principalmente do Sul, Sudeste e Nordeste provocou aumento populacional acima da capacidade estrutural do pequeno distrito. Conflitos fundiários tornaram-se frequentes, especialmente em áreas rurais disputadas entre posseiros, fazendeiros e empresas de colonização privada.
+            </p></br>
+
+            <p>
+            O primeiro grande ciclo econômico local ocorreu entre 1987 e 1995, impulsionado pela valorização da pecuária de corte. Frigoríficos, silos e transportadoras instalaram-se na região, consolidando Araguaia do Norte como importante centro intermediário do agronegócio estadual. Esse crescimento, contudo, ocorreu sem planejamento urbano adequado.
+            </p></br>
+
+            <p>
+            Na década de 2000, o município recebeu investimentos ligados ao asfaltamento parcial das rodovias estaduais próximas, facilitando o escoamento da produção agrícola. O aumento da arrecadação municipal estimulou obras públicas, construção de conjuntos habitacionais populares e expansão do comércio local.
+            </p></br>
+
+            <p>
+            Apesar disso, relatórios administrativos produzidos entre 2008 e 2016 apontam crescimento contínuo da desigualdade social, aumento da violência patrimonial e sobrecarga dos serviços públicos essenciais. A expansão urbana avançou mais rapidamente do que a capacidade de infraestrutura do município.
+            </p></br>
+
+            <p>
+            O shopping center inaugurado em 2014 foi tratado pelas administrações municipais da época como símbolo definitivo da modernização de Araguaia do Norte. O empreendimento trouxe cinemas, franquias nacionais e novas redes varejistas, mas o entusiasmo inicial diminuiu após os primeiros anos devido à baixa adesão regional e à desaceleração econômica estadual.
+            </p></br>
+
+            <p>
+            Atualmente, Araguaia do Norte é considerada uma cidade de importância média dentro do corredor agropecuário do nordeste mato-grossense. Embora apresente indicadores econômicos superiores aos de municípios vizinhos menores, ainda enfrenta problemas estruturais históricos relacionados à segurança pública, saúde, mobilidade urbana e ocupação territorial irregular.
+            </p></br>
+
+            <p>
+            Observadores regionais frequentemente descrevem o município como uma cidade “em crescimento permanente, porém inacabada” — um centro urbano construído rapidamente demais sobre uma fronteira rural que nunca deixou totalmente de existir.
+            </p>`,
+    },
+    {
+      id: "nova-albertina",
+      nome: "Nova Albertina - MT",
+      imagem: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Vis%C3%A3o_Panor%C3%A2mica_da_Cidade.jpg/1920px-Vis%C3%A3o_Panor%C3%A2mica_da_Cidade.jpg?w=1200&h=600&fit=crop",
+      descricao: `
+      <p>
+      O município de Nova Albertina localiza-se em uma região serrana isolada do nordeste do estado de Mato Grosso, distante aproximadamente 35 quilômetros de Araguaia do Norte e conectado ao restante da malha estadual por uma rodovia estreita cercada por mata densa, paredões rochosos e trechos frequentemente encobertos por neblina. Possui população estimada em cerca de 30 mil habitantes, distribuída entre o centro histórico urbano, bairros operários construídos ao longo das encostas e pequenas comunidades rurais espalhadas pelas áreas montanhosas da região.
+      </p></br>
+
+      <p>
+      Diferentemente de outros municípios próximos voltados predominantemente ao agronegócio, Nova Albertina desenvolveu-se historicamente em torno da antiga ferrovia estadual e das operações industriais ligadas ao transporte mineral e madeireiro. Embora grande parte dessas atividades tenha perdido força nas últimas décadas, a cidade preserva forte identidade ferroviária e industrial, refletida tanto na arquitetura quanto nos hábitos culturais locais.
+      </p></br>
+
+      <p>
+      A área central do município é composta por construções antigas de influência inglesa e serrana, erguidas originalmente para abrigar engenheiros, operadores ferroviários e administradores das antigas companhias de transporte que atuavam na região durante o século passado. Ruas estreitas de pedra, postes metálicos antigos, relógios públicos desativados e casarões cobertos por musgo permanecem preservados em diversos pontos da cidade.
+      </p></br>
+
+      <p>
+      O clima local diferencia Nova Albertina da maior parte do interior mato-grossense. Devido à altitude elevada e à proximidade de áreas de mata fechada, o município apresenta temperaturas mais baixas, alto índice de umidade e formação constante de neblina durante a madrugada e início das manhãs. Em determinados períodos do ano, a visibilidade nas áreas serranas pode cair drasticamente durante horas consecutivas.
+      </p></br>
+
+      <p>
+      A cidade é cortada pela antiga Linha Ferrosa Albertina, ferrovia construída ainda no período de expansão econômica regional para transporte de minério e madeira extraída das serras próximas. Embora parte da linha esteja oficialmente desativada, locomotivas de manutenção e pequenos comboios cargueiros ainda utilizam determinados trechos operacionais durante horários específicos da madrugada.
+      </p></br>
+
+      <p>
+      A economia municipal atualmente depende do turismo histórico, da silvicultura controlada, da extração mineral em pequena escala e de atividades ligadas ao beneficiamento de madeira certificada. O turismo local concentra-se principalmente na arquitetura antiga, nas trilhas serranas, nos túneis ferroviários abandonados e nos festivais de inverno realizados anualmente na região central.
+      </p></br>
+
+      <p>
+      Nova Albertina também tornou-se conhecida regionalmente pela ocorrência de fenômenos ambientais incomuns associados à Serra da Neblina Fria, formação montanhosa localizada ao norte do município. Relatórios ambientais mencionam a presença de espécies vegetais raras adaptadas ao microclima úmido e frio da região, incluindo fungos bioluminescentes encontrados em túneis ferroviários abandonados e musgos de coloração azul-esverdeada observados apenas em áreas específicas da serra.
+      </p></br>
+
+      <p>
+      Alguns pesquisadores independentes chegaram a associar essas anomalias ambientais à alta concentração mineral existente no subsolo da região, embora não existam estudos oficiais conclusivos publicados pelo governo estadual até o momento. Moradores locais frequentemente relatam odores metálicos vindos das áreas próximas aos túneis durante períodos de chuva intensa.
+      </p></br>
+
+      <p>
+      A infraestrutura urbana do município apresenta condições consideradas razoáveis na região central histórica, porém deteriora-se rapidamente nos bairros mais afastados das encostas. Deslizamentos de terra, falhas de energia elétrica e bloqueios temporários das estradas serranas são ocorrências relativamente comuns durante o período chuvoso.
+      </p></br>
+
+      <p>
+      O sistema de segurança pública local é operado por uma delegacia regional instalada em uma antiga estação ferroviária adaptada administrativamente no final da década de 1990. O prédio mantém parte de sua estrutura original, incluindo plataformas desativadas, depósitos subterrâneos lacrados e antigos túneis de manutenção atualmente interditados.
+      </p></br>
+
+      <p>
+      Durante a noite, Nova Albertina apresenta movimentação extremamente reduzida fora do centro histórico. A combinação entre neblina constante, iluminação pública limitada e arquitetura antiga faz com que partes da cidade permaneçam praticamente invisíveis após determinadas horas. O som predominante costuma ser o vento atravessando os cabos metálicos da ferrovia, os apitos distantes dos trens cargueiros e o ruído da água escorrendo pelas encostas da serra.
+      </p>
+      `,
+      conteudo: `
+            <h3>Registro Histórico - Nova Albertina</h3>
+            <p>
+            Os primeiros registros permanentes de ocupação da região correspondente a Nova Albertina remontam ao início do século XX, quando expedições ferroviárias estaduais identificaram a área serrana como rota potencial para transporte de minério e madeira extraída do nordeste mato-grossense.
+            </p></br>
+
+            <p>
+            A fundação do povoado ocorreu oficialmente em 1919, a partir da instalação de um complexo ferroviário construído para atender operações logísticas de companhias privadas de transporte e mineração. Engenheiros estrangeiros e trabalhadores vindos de diversas regiões do país participaram diretamente da construção da ferrovia e dos primeiros bairros operários do município.
+            </p></br>
+
+            <p>
+            O nome “Nova Albertina” teria sido adotado em homenagem informal à esposa de um dos engenheiros responsáveis pelo projeto ferroviário original, embora registros oficiais sobre a origem do nome permaneçam parcialmente incompletos devido à perda de documentos históricos durante um incêndio ocorrido no antigo arquivo municipal em 1968.
+            </p></br>
+
+            <p>
+            Durante as décadas de 1930 e 1940, o município experimentou rápido crescimento econômico impulsionado pela extração mineral e pelo transporte ferroviário regional. Grandes armazéns, oficinas mecânicas ferroviárias e alojamentos operários foram construídos ao redor da estação principal, consolidando Nova Albertina como importante centro industrial serrano do estado.
+            </p></br>
+
+            <p>
+            Entretanto, acidentes envolvendo deslizamentos de terra e falhas estruturais nos túneis ferroviários começaram a ocorrer com frequência crescente a partir da década de 1950. Relatórios técnicos antigos mencionam instabilidade geológica incomum em determinadas áreas da serra, além de registros esporádicos de desaparecimentos de trabalhadores durante operações subterrâneas de manutenção.
+            </p></br>
+
+            <p>
+            Em 1974, parte significativa da Linha Ferrosa Albertina foi oficialmente desativada após um grande desmoronamento atingir um dos principais túneis de carga da região norte da serra. Embora o governo estadual tenha divulgado a ocorrência como acidente geológico natural, documentos administrativos posteriores indicam que o local permaneceu isolado e sob monitoramento técnico durante vários anos após o incidente.
+            </p></br>
+
+            <p>
+            Nas décadas seguintes, o município passou por forte desaceleração econômica. A redução das atividades ferroviárias provocou desemprego, abandono gradual de bairros operários e fechamento de diversos estabelecimentos comerciais ligados à antiga economia industrial local.
+            </p></br>
+
+            <p>
+            Apesar disso, o relativo isolamento geográfico e a preservação arquitetônica acabaram impulsionando o turismo histórico e ambiental a partir dos anos 1990. Visitantes passaram a procurar a cidade devido ao clima incomum, às paisagens cobertas por neblina e às histórias envolvendo túneis abandonados e antigas estruturas ferroviárias esquecidas pela mata.
+            </p></br>
+
+            <p>
+            Relatórios administrativos produzidos entre 2005 e 2012 apontam aumento significativo do interesse acadêmico em fenômenos ambientais observados na Serra da Neblina Fria, incluindo alterações incomuns na vegetação local, crescimento acelerado de fungos subterrâneos e presença de compostos minerais considerados raros em determinadas áreas próximas aos túneis interditados.
+            </p></br>
+
+            <p>
+            Atualmente, Nova Albertina é considerada uma das cidades mais incomuns do nordeste mato-grossense, reunindo patrimônio histórico preservado, clima atípico e extensas áreas serranas parcialmente inexploradas. Embora mantenha aparência turística relativamente pacata durante o dia, partes do município permanecem isoladas devido às condições ambientais severas e à existência de antigas estruturas ferroviárias consideradas inseguras pelas autoridades estaduais.
+            </p></br>
+
+            <p>
+            Moradores antigos frequentemente descrevem Nova Albertina como uma cidade “que nunca saiu completamente da névoa”, referência comum tanto ao clima permanente quanto aos episódios históricos mal documentados envolvendo a antiga ferrovia e as serras ao redor do município.
+            </p></br>
+          `,
+    },
+    {
+      id: "remanso",
+      nome: "Remanso do Tucano - MT",
+      imagem: "https://upload.wikimedia.org/wikipedia/commons/2/23/1673542321edRwyLnlCj.jpg?w=1200&h=600&fit=crop",
+      descricao: `
+      <p>
+      O município de Remanso do Tucano localiza-se na região nordeste do estado de Mato Grosso, a aproximadamente 70 quilômetros do município de Araguaia do Norte, conectado por uma rodovia estadual de pista simples cercada por áreas de cerrado, fazendas de criação bovina e pequenas reservas ambientais particulares. Possui população estimada em cerca de 20 mil habitantes, distribuídos entre a sede municipal, distritos rurais menores e propriedades agrícolas espalhadas ao redor das serras e rios da região.
+      </p></br>
+
+      <p>
+      A economia local depende principalmente da agropecuária, do pequeno comércio regional e de atividades relacionadas à extração mineral em baixa escala, herança de antigos ciclos econômicos da região. O município mantém forte ligação comercial com Araguaia do Norte, funcionando parcialmente como ponto de apoio logístico e fornecedor agrícola para cidades maiores próximas.
+      </p></br>
+
+      <p>
+      O centro urbano de Remanso do Tucano desenvolveu-se ao redor da Avenida das Garças e da Praça do Lago Azul, onde se concentram repartições públicas, mercados, farmácias, hotéis simples, oficinas mecânicas e restaurantes voltados ao atendimento de viajantes, caminhoneiros e trabalhadores rurais. Apesar do porte reduzido, a cidade apresenta infraestrutura relativamente organizada em comparação a outros municípios vizinhos do interior mato-grossense.
+      </p></br>
+
+      <p>
+      A malha urbana mistura ruas largas planejadas durante períodos de expansão econômica com bairros periféricos construídos de forma improvisada ao longo das últimas décadas. Em períodos de estiagem, a poeira avermelhada cobre boa parte da cidade; durante as chuvas, áreas periféricas frequentemente enfrentam dificuldades de acesso devido ao acúmulo de lama e falhas de drenagem.
+      </p></br>
+
+      <p>
+      Remanso do Tucano é conhecida regionalmente como “Capital dos Pássaros”, título informal atribuído pela grande diversidade de aves presentes nas matas e áreas alagadas ao redor do município. Tucanos, araras, garças, maracanãs e inúmeras espécies menores fazem parte da paisagem cotidiana da cidade, atraindo pesquisadores ambientais, fotógrafos e observadores de fauna durante determinadas épocas do ano.
+      </p></br>
+
+      <p>
+      Além da fauna abundante, o município também ganhou notoriedade discreta pela presença de espécies botânicas raras encontradas em regiões úmidas próximas às serras. Entre elas destaca-se a flor chamada de Sonnentreppe Brazilis, catalogada informalmente por pesquisadores locais. A planta apresenta coloração amarelada intensa, pétalas em formato espiralado e propriedades químicas ainda pouco estudadas oficialmente.
+      </p></br>
+
+      <p>
+      Nos últimos anos, algumas fazendas experimentais da região passaram a cultivar pequenas quantidades da flor para pesquisas voltadas à produção de compostos medicinais e anti-inflamatórios naturais. Relatórios internos mencionam o interesse preliminar de farmacêuticas internacionais na planta, embora nenhuma empresa estrangeira tenha estabelecido operações formais ou filiais no município até o presente momento.
+      </p></br>
+
+      <p>
+      A infraestrutura pública municipal permanece limitada. O hospital local possui capacidade reduzida e frequentemente transfere pacientes graves para Araguaia do Norte. Serviços essenciais como saneamento, abastecimento de água e manutenção elétrica sofrem interrupções periódicas, especialmente nos bairros mais afastados e nas zonas rurais.
+      </p></br>
+
+      <p>
+      A segurança pública é atendida por uma pequena companhia policial instalada em um prédio administrativo adaptado de uma antiga cooperativa agrícola desativada nos anos noventa. O efetivo policial é considerado suficiente apenas para ocorrências de rotina, havendo dependência frequente de reforços regionais em casos de maior gravidade.
+      </p></br>
+
+      <p>
+      Durante a noite, Remanso do Tucano torna-se silenciosa e pouco movimentada. Após o fechamento do comércio, a cidade permanece iluminada apenas pelos postes antigos da região central e pelas luzes dispersas das propriedades rurais ao redor. O som predominante costuma ser o canto noturno das aves, o barulho constante dos insetos do cerrado e o vento atravessando as árvores próximas ao lago municipal.
+      </p>
+      `,
+      conteudo: `
+            <h3>Registro Histórico - Remanso do Tucano</h3>
+            <p>
+            Os primeiros registros permanentes de ocupação da região correspondente a Remanso do Tucano remontam às décadas de 1950 e 1960, quando pequenos grupos de criadores de gado, garimpeiros e trabalhadores rurais estabeleceram acampamentos provisórios próximos aos rios e áreas férteis do nordeste mato-grossense.
+            </p></br>
+
+            <p>
+            O povoado original surgiu ao redor de um ponto de descanso utilizado por viajantes e tropeiros que cruzavam antigas rotas de terra em direção aos municípios maiores da região. O nome “Remanso do Tucano” teria origem em uma área de águas calmas próxima ao rio principal, conhecida pela presença constante de bandos de tucanos e outras aves típicas do cerrado mato-grossense.
+            </p></br>
+
+            <p>
+            Durante as décadas seguintes, o crescimento populacional ocorreu de maneira lenta, sustentado principalmente pela pecuária extensiva, agricultura familiar e pequenas atividades de mineração artesanal realizadas nas serras próximas ao município.
+            </p></br>
+
+            <p>
+            Nos anos oitenta, a expansão econômica de Araguaia do Norte impactou diretamente Remanso do Tucano. Novas estradas estaduais facilitaram o transporte de mercadorias, provocando aumento populacional gradual e crescimento do comércio local. Muitas famílias passaram a utilizar o município como alternativa mais tranquila e barata em relação às cidades maiores da região.
+            </p></br>
+
+            <p>
+            A emancipação política ocorreu oficialmente no final da década de 1980, após sucessivas pressões de produtores rurais e comerciantes locais interessados em maior autonomia administrativa e investimentos públicos próprios.
+            </p></br>
+
+            <p>
+            Durante os anos noventa, Remanso do Tucano consolidou-se como importante fornecedor agrícola regional, embora permanecesse dependente economicamente dos centros urbanos vizinhos. Nesse período também surgiram os primeiros registros científicos informais relacionados à flora rara encontrada nas áreas úmidas próximas às serras municipais.
+            </p></br>
+
+            <p>
+            Pesquisadores universitários e botânicos independentes passaram a visitar regularmente a região após relatos sobre espécies vegetais incomuns que floresciam em condições ambientais específicas durante determinadas épocas do ano. A chamada Sonnentreppe Brazilis tornou-se gradualmente objeto de estudos acadêmicos discretos devido à composição química considerada incomum em análises preliminares.
+            </p></br>
+
+            <p>
+            Relatórios administrativos produzidos entre 2002 e 2008 apontam aumento moderado do turismo ecológico ligado à observação de aves, trilhas ambientais e visitas às áreas de preservação natural existentes ao redor do município. Apesar disso, a cidade continua apresentando crescimento econômico lento e infraestrutura limitada para atividades turísticas em larga escala.
+            </p></br>
+
+            <p>
+            Atualmente, Remanso do Tucano é considerada uma cidade pequena de relevância regional moderada, conhecida principalmente pela biodiversidade local, pela forte presença de aves silvestres e pelas histórias envolvendo suas espécies botânicas raras. Embora mantenha aparência pacata e rotina relativamente estável, o município permanece cercado por extensas áreas rurais isoladas e regiões ambientais pouco exploradas oficialmente.
+            </p></br>
+
+            <p>
+            Moradores antigos frequentemente descrevem Remanso do Tucano como uma cidade “quieta demais para chamar atenção”, embora reconheçam que o município desperta curiosidade incomum entre pesquisadores ambientais, empresas privadas e visitantes ocasionais vindos de outras partes do país.
+            </p>
+          `,
+    },
+    ];
+    // ┌─────────────────────────────────────────────────────────────┐
+    // │ FUNÇÃO: CARREGAR PERSONAGEM                                 │
+    // │ Chama esta função quando o usuário clica em um botão        │
+    // └─────────────────────────────────────────────────────────────┘
+    function carregarPersonagem(indice) {
+      // Esconder arquivo e mostrar ficha
+      document.getElementById("fichaPersonagem").style.display = "grid";
+      document.getElementById("viewArquivo").classList.remove("ativo");
+      const pers = personagens[indice];
+      const ficha = document.getElementById("fichaPersonagem");
+      // Atualizar botões ativos
+      document.querySelectorAll(".char-btn").forEach((btn, i) => {
+        btn.classList.toggle("ativo", i === indice);
+      });
+      // Remover classe ativo dos botões de arquivo
+      document
+        .querySelectorAll(".side-btn")
+        .forEach((btn) => btn.classList.remove("ativo-arquivo"));
+      // HTML da ficha
+      ficha.innerHTML = `
+            <!-- PAINEL 1: IMAGEM -->
+            <div class="panel">
+                <h2>Perfil</h2>
+                <img src="${pers.imagem}" alt="${pers.nome}" class="character-image">
+                <div class="info-label">▸ Nome Completo</div>
+                <div class="info-content">${pers.nome}</div>
+
+                <div class="info-label">▸ Idade</div>
+                <div class="info-content">${pers.idade}</div>
+
+                <div class="info-label">▸ Gênero</div>
+                <div class="info-content">${pers.genero}</div>
+
+                <div class="info-label">▸ Orientação Sexual</div>
+                <div class="info-content">${pers.orientacao_sexual}</div>
+
+                <div class="info-label">▸ Ocupação</div>
+                <div class="info-content">${pers.ocupacao}</div>
+
+                <div class="info-label">▸ Altura</div>
+                <div class="info-content">${pers.altura}</div>
+            </div>
+
+            <!-- PAINEL 2: INFORMAÇÕES PRINCIPAIS -->
+            <div class="panel">
+                <h2>Informações</h2>
+
+                <div class="info-label">▸ Personalidade</div>
+                <div class="info-content">${pers.personalidade}</div>
+
+                <div class="info-label">▸ História</div>
+                <div class="info-content">${pers.historia}</div>
+            </div>
+
+            <!-- PAINEL 3: OBSERVAÇÕES E STATUS -->
+            <div class="panel">
+                <h2>Observações</h2>
+
+                <ul class="lista-observacoes">
+                    ${pers.observacoes.map((obs) => `<li>${obs}</li>`).join("")}
+                </ul>
+
+            </div>
+        `;
+      // Smooth scroll para o topo da ficha
+      document
+        .querySelector(".character-sheet")
+        .scrollIntoView({
+          behavior: "smooth"
+        });
+    }
+    // ┌─────────────────────────────────────────────────────────────┐
+    // │ FUNÇÃO: CARREGAR ARQUIVO                                    │
+    // │ Chama esta função quando o usuário clica em um arquivo      │
+    // └─────────────────────────────────────────────────────────────┘
+    function carregarArquivo(id) {
+      // Esconder ficha e mostrar arquivo
+      document.getElementById("fichaPersonagem").style.display = "none";
+      document.getElementById("viewArquivo").classList.add("ativo");
+      // Encontrar arquivo
+      const arquivo = arquivos.find((a) => a.id === id);
+      if (!arquivo) return;
+      const viewArquivo = document.getElementById("viewArquivo");
+      // Atualizar botões ativos
+      document.querySelectorAll(".side-btn").forEach((btn) => {
+        btn.classList.toggle(
+          "ativo-arquivo",
+          btn.textContent.includes(arquivo.nome),
+        );
+      });
+      // Remover classe ativo dos botões de personagem
+      document
+        .querySelectorAll(".char-btn")
+        .forEach((btn) => btn.classList.remove("ativo"));
+      // HTML do arquivo
+      viewArquivo.innerHTML = `
+            <!-- PAINEL 1: IMAGEM E DESCRIÇÃO -->
+            <div class="panel">
+                <h2>${arquivo.nome}</h2>
+                <img src="${arquivo.imagem}" alt="${arquivo.nome}" class="arquivo-image">
+                <p>${arquivo.descricao}</p>
+            </div>
+
+            <!-- PAINEL 2: CONTEÚDO DETALHADO -->
+            <div class="panel">
+                ${arquivo.conteudo}
+            </div>
+        `;
+      // Smooth scroll para o topo
+      viewArquivo.scrollIntoView({
+        behavior: "smooth"
+      });
+    }
+    // Carregar o primeiro personagem automaticamente
+    carregarPersonagem(0);
+  </script>
+</body>
+
+</html>
